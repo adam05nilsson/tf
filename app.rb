@@ -1,1 +1,4 @@
-p hellow world
+require 'sinatra'
+require 'slim'
+require 'sqlite3'
+require 'sinatra/reloader'

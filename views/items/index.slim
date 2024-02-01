@@ -1,0 +1,31 @@
+h1 Lager 
+
+h2 Add new watch
+
+form method="POST" action="items_admin/new"
+  input type="text" name="new_name" placeholder="Enter name of watch"
+  input type="text" name="new_price" placeholder="Enter Price"
+    select name="new_brand_id"
+      option value="1" selected="selected" Rolex
+      option value="2" selected="seletecd" Omega
+      option value="3" selected="selected" Tissot 
+      option value="4" selected="selected" Patek Philipe 
+      option value="5" selected="seletecd" Breitholtz
+    select name="new_model_id"
+      option value="1" selected="selected" Diver 
+      option value="2" selected="seletecd" GMT
+      option value="3" selected="selected" Luxary Sport
+      option value="3" selected="selected" CRONOGRAF 
+  input type="submit" value="Lägg till Ny"/
+
+
+ol
+  - items_result.each do |item|
+    li 
+      h3 #{item["brand_name"]}, #{item["name"]}, #{item["model_name"]}, #{item["price"]} 
+      form method="POST" action="items_admin/delete"
+        input type="hidden" name="item_id" value="#{item['id']}"
+        input type="submit" value="Delete"
+      form method="GET" action="items_admin/edit"
+        input type="submit" value="Edit"
+      

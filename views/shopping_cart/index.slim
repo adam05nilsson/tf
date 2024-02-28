@@ -1,0 +1,11 @@
+a href="http://localhost:4567/home" Home 
+
+h2 Din varukorg
+- tot = 0
+-items_result.each do |item|
+    h3 #{item["name"]}, #{item["price"]}kr
+    - tot += item["price"].to_i
+    - p tot 
+
+
+h3 Total: #{tot}kr

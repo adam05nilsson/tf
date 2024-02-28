@@ -22,10 +22,10 @@ form method="POST" action="items_admin/new"
 ol
   - items_result.each do |item|
     li 
-      h3 #{item["brand_name"]}, #{item["name"]}, #{item["model_name"]}, #{item["price"]} 
+      h3 #{item["brand_name"]}, #{item["name"]}, #{item["model_name"]}, #{item["price"]}kr
       form method="POST" action="items_admin/delete"
         input type="hidden" name="item_id" value="#{item['id']}"
         input type="submit" value="Delete"
-      form method="GET" action="items_admin/edit"
-        input type="submit" value="Edit"
+      / form method="GET" action="items_admin/edit"
+      /   input type="submit" value="Edit"
       

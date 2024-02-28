@@ -6,8 +6,15 @@ require 'bcrypt'
 enable:sessions
 
 
-get('/')do
-    slim(:home)
+get('/home')do
+    db = SQLite3::Database.new('db/webshop.db')
+    db.results_as_hash = true
+    user_id = session[:id]
+    brand = db.execute("SELECT * FROM brand")
+    item = db.execute("SELECT * FROM items")
+    user = db.execute("SELECT username FROM user Where id =?",user_id).first
+    p user
+    slim(:"/home",locals:{brands_result:brand,items_result:item,user_result:user})
 end
 
 post('/login')do
@@ -24,17 +31,40 @@ post('/login')do
     p result
     
     pwdigest = result["pwdigest"]
-
+    id = result["id"]
 
     if BCrypt::Password.new(pwdigest) == password
-        redirect('/')
+        session[:id] = id
+        redirect('/home')
     else
         "FEl LöSEN"
     end
 end
 
-get('/showlogin')do 
+get('/')do 
 slim(:login)
+end
+
+get ('/shopping_cart')do
+id = session[:id].to_i
+db = SQLite3::Database.new('db/webshop.db')
+db.results_as_hash = true
+items = db.execute("SELECT items.name, items.price
+FROM (user_items_rel INNER JOIN items ON user_items_rel.items_id = items.id)
+WHERE user_id = #{id}
+")
+p items
+slim(:"shopping_cart/index",locals:{items_result:items})
+end
+
+post('/shopping_cart_add')do
+    item_id = params[:item_id].to_i
+    user_id = session[:id].to_i
+    p user_id
+    p item_id
+    db = SQLite3::Database.new('db/webshop.db')
+    db.execute("INSERT INTO user_items_rel (user_id, items_id) VALUES (?,?)",user_id,item_id)
+    redirect('/home')
 end
 
 

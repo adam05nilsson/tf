@@ -3,3 +3,7 @@ form action="register" method="POST"
     input type="password" name="password" placeholder="Enter Password"
     input type="password" name="password_confirm" placeholder="Enter Password Again"
     input type="submit" value="Registrera ny användare"
+
+
+        - if flash[:notice]
+           p.notice = flash[:notice]

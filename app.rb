@@ -2,123 +2,153 @@ require 'sinatra'
 require 'slim'
 require 'sqlite3'
 require 'bcrypt'
+require 'sinatra/flash'
+require './model.rb'
 
 enable:sessions
 
-
-get('/home')do
-    db = SQLite3::Database.new('db/webshop.db')
-    db.results_as_hash = true
-    user_id = session[:id]
-    brand = db.execute("SELECT * FROM brand")
-    item = db.execute("SELECT * FROM items")
-    user = db.execute("SELECT username FROM user Where id =?",user_id).first
-    p user
-    slim(:"/home",locals:{brands_result:brand,items_result:item,user_result:user})
-end
-
+#KLAR
 post('/login')do
+
     username = params[:username]
     password = params[:password]
-    db = SQLite3::Database.new('db/webshop.db')
-    db.results_as_hash = true
-    
 
-    #lägg till så att man kollar att användarnmanet finns annars skriv "no existing username"
-
-    result = db.execute("SELECT * FROM user WHERE username = ?",username).first
-
-    p result
-    
-    pwdigest = result["pwdigest"]
-    id = result["id"]
-
-    if BCrypt::Password.new(pwdigest) == password
-        session[:id] = id
-        redirect('/home')
+    if get_user(username).empty?
+        flash[:notice] = "no user with that username"
+        redirect('/')
     else
-        "FEl LöSEN"
+        result = get_user(username).first
+        pwdigest = result["pwdigest"]
+        id = result["id"]
+        role = result["role"]
+
+        if check_password(pwdigest,password)
+            session[:id] = id
+            session[:role] = role
+            if role == 1
+                redirect("/items_admin")
+            else
+                redirect('/home')
+            end
+        else
+            flash[:notice] = "wrong password"
+            redirect('/')
+        end
     end
+    # login(username,password)
 end
 
-get('/')do 
-slim(:login)
-end
-
-get ('/shopping_cart')do
-id = session[:id].to_i
-db = SQLite3::Database.new('db/webshop.db')
-db.results_as_hash = true
-items = db.execute("SELECT items.name, items.price
-FROM (user_items_rel INNER JOIN items ON user_items_rel.items_id = items.id)
-WHERE user_id = #{id}
-")
-p items
-slim(:"shopping_cart/index",locals:{items_result:items})
-end
-
-post('/shopping_cart_add')do
-    item_id = params[:item_id].to_i
-    user_id = session[:id].to_i
-    p user_id
-    p item_id
-    db = SQLite3::Database.new('db/webshop.db')
-    db.execute("INSERT INTO user_items_rel (user_id, items_id) VALUES (?,?)",user_id,item_id)
-    redirect('/home')
-end
-
-
+#KLAR
 post('/register')do
 
     username = params[:username]
     password = params[:password]
     password_confirm = params[:password_confirm]
 
-    if (password == password_confirm)
-
-        password_digest = BCrypt::Password.create(password)
-        db = SQLite3::Database.new('db/webshop.db')
-        db.execute("INSERT INTO user (username,pwdigest,role) VALUES (?,?,0)",username,password_digest)
+    if get_usernames.include?([username])
+        flash[:notice] = "already existing username"
+        redirect('/showregister')
+    elsif (password == password_confirm)
+        register_user(username,password)
         redirect('/')
     else
-        "lösenorden matchade inte"
+        flash[:notice] = "passwords did not match"
+        redirect('/showregister')
     end
 end
 
-
+#KLAR
 get('/showregister')do
-slim(:register)
+    slim(:register)
 end
 
-get('/items_admin') do
+#KLAR
+get('/')do 
+    slim(:login)
+end
+
+get('/home')do
+    user_id = session[:id]
     db = SQLite3::Database.new('db/webshop.db')
     db.results_as_hash = true
-    result = db.execute("SELECT items.*, brand.name AS brand_name, model.name AS model_name
-    FROM items
-    INNER JOIN brand ON items.brand_id = brand.id
-    INNER JOIN model ON items.model_id = model.id")
-    p result
-    slim(:"items/index",locals:{items_result:result})
+    brand = db.execute("SELECT * FROM brand")
+    item = db.execute("SELECT * FROM items")
+    user = db.execute("SELECT username FROM user Where id =?",user_id).first
+    slim(:"/home",locals:{brands_result:brand,items_result:item,user_result:user})
 end
 
-post('/items_admin/delete')do
+#KLAR
+get('/shopping_cart')do
+
+    id = session[:id].to_i
+    items = show_user_shoppingcart(id)
+
+    slim(:"shopping_cart/index",locals:{items_result:items})
+
+end
+
+#KLAR
+post('/shopping_cart/add')do
+
     item_id = params[:item_id].to_i
-    db = SQLite3::Database.new('db/webshop.db')
-    db.execute("DELETE FROM items WHERE id = ?",item_id)
+    user_id = session[:id].to_i
+
+    add_to_shoppingcart(item_id,user_id)
+
+    redirect('/home')
+
+end
+
+
+post('/shopping_cart/delete')do
+
+    item_id = params[:item_id].to_i
+    user_id = session[:id].to_i
+  
+    delete_from_shoppingcart(item_id,user_id)
+
+    redirect('/shopping_cart')
+
+end
+
+#KLAR
+get('/items_admin') do
+
+    unless admin
+        redirect("/error")
+    end
+
+    result = show_items_admin()
+
+    slim(:"items/index",locals:{items_result:result})
+
+end
+
+#KLAR
+post('/items_admin/delete')do
+
+    item_id = params[:item_id].to_i
+
+    delete_from_items_admin(item_id)
+
     redirect('/items_admin')
 
 end
 
+#KLAR
 post('/items_admin/new')do
+
     new_model_id = params[:new_model_id].to_i
     new_brand_id = params[:new_brand_id].to_i
     new_name = params[:new_name]
     new_price = params[:new_price]
-    p new_model_id
-    p new_brand_id
-    p new_name
-    p new_price
-    db = SQLite3::Database.new('db/webshop.db')
-    db.execute("INSERT INTO items (name, price, model_id, brand_id ) VALUES (?,?,?,?)",new_name,new_price,new_model_id,new_brand_id)
-    redirect('/items_admin')
+
+    create_item(new_model_id,new_brand_id,new_name,new_price)
+
 end
+
+#lägg till rickroll
+get("/error")do
+   slim(:cheater)
+end
+

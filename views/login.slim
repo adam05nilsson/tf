@@ -1,5 +1,10 @@
 form action="login" method="POST"
     input type="text" name="username" placeholder="enter username"
-    input type="text" name="password" placeholder="enter password"
+    input type="password" name="password" placeholder="enter password"
     input type="submit" value="logga in tack"
+
+
+       - if flash[:notice]
+           p.notice = flash[:notice]
+
     

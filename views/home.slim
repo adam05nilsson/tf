@@ -1,5 +1,5 @@
 
-a href="http://localhost:4567/shopping_cart" Your shopping cart 
+a href="/shopping_cart" Your shopping cart 
 
 h3 VÄLKOMMEN #{user_result["username"]} DIN GOA GÖBBE
 
@@ -10,7 +10,7 @@ h2 Our Watches
   - items_result.each do |item|
    - if item["brand_id"] == brand["id"]
         h4 #{item["name"]}, #{item["price"]}kr
-        form method="POST" action="shopping_cart_add"
+        form method="POST" action="shopping_cart/add"
             input type="hidden" name="item_id" value="#{item['id']}"
             input type="submit" value="Add to Cart"
 

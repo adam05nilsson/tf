@@ -1,11 +1,14 @@
-a href="http://localhost:4567/home" Home 
+a href="/home" Home 
 
 h2 Din varukorg
 - tot = 0
 -items_result.each do |item|
-    h3 #{item["name"]}, #{item["price"]}kr
+    h3 #{item["brand_name"]} #{item["name"]} #{item["model_name"]}: #{item["price"]}kr
+    form method="POST" action="shopping_cart/delete"
+        input type="hidden" name="item_id" value="#{item['items_id']}"
+        input type="submit" value="Delete"
     - tot += item["price"].to_i
     - p tot 
 
 
-h3 Total: #{tot}kr
+h2 Total: #{tot}kr

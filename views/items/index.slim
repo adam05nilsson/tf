@@ -2,7 +2,7 @@ h1 Lager
 
 h2 Add new watch
 
-form method="POST" action="items_admin/new"
+form method="POST" action="/p/items_admin/new"
   input type="text" name="new_name" placeholder="Enter name of watch"
   input type="text" name="new_price" placeholder="Enter Price"
     select name="new_brand_id"
@@ -15,14 +15,14 @@ form method="POST" action="items_admin/new"
       option value="1" selected="selected" Diver 
       option value="2" selected="seletecd" GMT
       option value="3" selected="selected" Luxary Sport
-      option value="3" selected="selected" CRONOGRAF 
+      option value="4" selected="selected" Cronograf 
   input type="submit" value="Lägg till Ny"/
 
 ol
   - items_result.each do |item|
     li 
       h3 #{item["brand_name"]} #{item["name"]} #{item["model_name"]}: #{item["price"]}kr
-      form method="POST" action="items_admin/delete"
+      form method="POST" action="/p/items_admin/delete"
         input type="hidden" name="item_id" value="#{item['id']}"
         input type="submit" value="Delete"
 

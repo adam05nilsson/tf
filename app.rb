@@ -7,7 +7,13 @@ require './model.rb'
 
 enable:sessions
 
-#KLAR
+before('/p/*') do
+    p "These are protected_methods"
+     if session[:id] ==  nil
+      redirect('/')
+    end
+end
+   
 post('/login')do
 
     username = params[:username]
@@ -26,19 +32,17 @@ post('/login')do
             session[:id] = id
             session[:role] = role
             if role == 1
-                redirect("/items_admin")
+                redirect("/p/items_admin")
             else
-                redirect('/home')
+                redirect('/p/home')
             end
         else
             flash[:notice] = "wrong password"
             redirect('/')
         end
     end
-    # login(username,password)
 end
 
-#KLAR
 post('/register')do
 
     username = params[:username]
@@ -57,65 +61,65 @@ post('/register')do
     end
 end
 
-#KLAR
 get('/showregister')do
     slim(:register)
 end
 
-#KLAR
 get('/')do 
     slim(:login)
 end
 
-get('/home')do
+get('/p/home')do
     user_id = session[:id]
-    db = SQLite3::Database.new('db/webshop.db')
-    db.results_as_hash = true
-    brand = db.execute("SELECT * FROM brand")
-    item = db.execute("SELECT * FROM items")
-    user = db.execute("SELECT username FROM user Where id =?",user_id).first
+
+    arr = show_home(user_id)
+
+    brand = arr[0]
+    item = arr[1]
+    user = arr[2]
+
     slim(:"/home",locals:{brands_result:brand,items_result:item,user_result:user})
 end
 
-#KLAR
-get('/shopping_cart')do
+get('/p/shopping_cart')do
 
     id = session[:id].to_i
     items = show_user_shoppingcart(id)
+
+    p items
 
     slim(:"shopping_cart/index",locals:{items_result:items})
 
 end
 
-#KLAR
-post('/shopping_cart/add')do
+post('/p/shopping_cart/add')do
 
     item_id = params[:item_id].to_i
     user_id = session[:id].to_i
 
     add_to_shoppingcart(item_id,user_id)
 
-    redirect('/home')
+    redirect('/p/home')
 
 end
 
+post('/p/shopping_cart/delete')do
 
-post('/shopping_cart/delete')do
-
-    item_id = params[:item_id].to_i
+    relation_id = params[:relation_id].to_i
     user_id = session[:id].to_i
-  
-    delete_from_shoppingcart(item_id,user_id)
 
-    redirect('/shopping_cart')
+    p relation_id
+  
+    delete_from_shoppingcart(relation_id)
+
+    redirect('/p/shopping_cart')
 
 end
 
-#KLAR
-get('/items_admin') do
+get('/p/items_admin') do
 
     unless admin
-        redirect("/error")
+        redirect("/p/error")
     end
 
     result = show_items_admin()
@@ -124,19 +128,17 @@ get('/items_admin') do
 
 end
 
-#KLAR
-post('/items_admin/delete')do
+post('/p/items_admin/delete')do
 
     item_id = params[:item_id].to_i
 
     delete_from_items_admin(item_id)
 
-    redirect('/items_admin')
+    redirect('/p/items_admin')
 
 end
 
-#KLAR
-post('/items_admin/new')do
+post('/p/items_admin/new')do
 
     new_model_id = params[:new_model_id].to_i
     new_brand_id = params[:new_brand_id].to_i
@@ -145,10 +147,12 @@ post('/items_admin/new')do
 
     create_item(new_model_id,new_brand_id,new_name,new_price)
 
+    redirect('/p/items_admin')
+
+
 end
 
-#lägg till rickroll
-get("/error")do
+get("/p/error")do
    slim(:cheater)
 end
 

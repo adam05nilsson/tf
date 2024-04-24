@@ -7,6 +7,12 @@ require './model.rb'
 
 enable:sessions
 
+helpers do
+    def admin
+        return session[:role] == 1
+    end
+end
+
 before('/p/*') do
     p "These are protected_methods"
      if session[:id] ==  nil
@@ -48,12 +54,13 @@ post('/register')do
     username = params[:username]
     password = params[:password]
     password_confirm = params[:password_confirm]
+    role = 0
 
     if get_usernames.include?([username])
         flash[:notice] = "already existing username"
         redirect('/showregister')
     elsif (password == password_confirm)
-        register_user(username,password)
+        register_user(username,password,role)
         redirect('/')
     else
         flash[:notice] = "passwords did not match"
@@ -124,11 +131,16 @@ get('/p/items_admin') do
 
     result = show_items_admin()
 
-    slim(:"items/index",locals:{items_result:result})
+    slim(:"admin/index",locals:{items_result:result})
 
 end
 
 post('/p/items_admin/delete')do
+
+    unless admin
+        redirect("/p/error")
+    end
+
 
     item_id = params[:item_id].to_i
 
@@ -139,6 +151,11 @@ post('/p/items_admin/delete')do
 end
 
 post('/p/items_admin/new')do
+
+    unless admin
+        redirect("/p/error")
+    end
+
 
     new_model_id = params[:new_model_id].to_i
     new_brand_id = params[:new_brand_id].to_i
@@ -155,4 +172,68 @@ end
 get("/p/error")do
    slim(:cheater)
 end
+
+get('/p/user_list_admin')do
+
+    unless admin
+        redirect("/p/error")
+    end
+
+    result = get_all_user_info()
+
+    slim(:"admin/user_list",locals:{user_result:result})
+
+end
+
+post('/p/user_list_admin/delete')do
+
+    unless admin
+        redirect("/p/error")
+    end
+
+    user_id = params[:user_id]
+
+    delete_all_user_items(user_id)
+    delete_user(user_id)
+
+    redirect('/p/user_list_admin')
+
+end
+
+post('/p/user_list_admin/add')do
+
+    unless admin
+        redirect("/p/error")
+    end
+
+    username = params[:username]
+    password = params[:password]
+    password_confirm = params[:password_confirm]
+    role = params[:role].to_i
+
+    if get_usernames.include?([username])
+        flash[:notice] = "already existing username"
+        redirect('/p/user_list_admin')
+    elsif (password == password_confirm)
+        register_user(username,password,role)
+        redirect('/p/user_list_admin')
+    else
+        flash[:notice] = "passwords did not match"
+        redirect('/p/user_list_admin')
+    end
+
+    redirect('/p/user_list_admin')
+
+end
+
+get("/p/edit_user")do
+
+
+    slim()
+end
+
+post("logout")do
+end
+
+
 

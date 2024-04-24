@@ -1,0 +1,26 @@
+
+a href="/p/items_admin" Gå tillbaka
+
+h2 Skapa ny användare
+
+form method="POST" action="/p/user_list_admin/add"
+  input type="text" name="username" placeholder="Enter username"
+  input type="text" name="password" placeholder="Enter password"
+  input type="text" name="password_confirm" placeholder="Enter password again "
+    select name="role"
+      option value="1" selected="selected" Admin
+      option value="0" selected="seletecd" Costumer
+  input type="submit" value="Lägg till Ny användare"/
+
+- if flash[:notice]
+     p.notice = flash[:notice]
+
+
+h2 Alla användare
+ol
+  - user_result.each do |user|
+    li 
+      h3 Username:#{user["username"]}, ID:#{user["id"]} Role:#{user["role"]}
+    form method="POST" action="/p/user_list_admin/delete"
+        input type="hidden" name="user_id" value="#{user['id']}"
+        input type="submit" value="Delete"

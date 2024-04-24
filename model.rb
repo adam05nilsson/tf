@@ -1,10 +1,3 @@
-
-helpers do
-    def admin
-        return session[:role] == 1
-    end
-end
-
 def get_database()
     db = SQLite3::Database.new('db/webshop.db')
     db.results_as_hash = true
@@ -22,16 +15,26 @@ def check_password(pwdigest,password)
     return  BCrypt::Password.new(pwdigest) == password
 end
 
+def get_all_user_info()
+
+    db = get_database()
+ 
+    result = db.execute("SELECT pwdigest, id, role, username FROM user")
+
+    return result
+
+end
+
 def get_usernames()
     db = SQLite3::Database.new('db/webshop.db')
     result = db.execute("SELECT username FROM user")
     return result
 end
 
-def register_user(username,password)
+def register_user(username,password,role)
     db = SQLite3::Database.new('db/webshop.db')
     password_digest = BCrypt::Password.create(password)
-    db.execute("INSERT INTO user (username,pwdigest,role) VALUES (?,?,0)",username,password_digest)
+    db.execute("INSERT INTO user (username,pwdigest,role) VALUES (?,?,?)",username,password_digest,role)
 end
 
 def show_user_shoppingcart(id)
@@ -79,7 +82,7 @@ end
 
 def show_home(user_id)
 
-    db = get_database
+    db = get_database()
 
     brand = db.execute("SELECT * FROM brand")
     item = db.execute("SELECT * FROM items")
@@ -88,4 +91,17 @@ def show_home(user_id)
     arr = [brand,item,user]
 
     return arr
+end
+
+def delete_user(user_id)
+
+    db = get_database()
+
+    db.execute("DELETE FROM user WHERE id = ?", user_id)
+
+end
+
+def delete_all_user_items(user_id)
+    db = get_database()
+    db.execute("DELETE FROM user_items_rel WHERE user_id =? ",user_id)
 end

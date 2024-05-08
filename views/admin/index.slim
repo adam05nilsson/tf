@@ -6,6 +6,10 @@ h2 Lager
 
 h3 Add new watch
 
+- if flash[:notice]
+  p.notice = flash[:notice]
+
+
 form method="POST" action="/p/items_admin/new"
   input type="text" name="new_name" placeholder="Enter name of watch"
   input type="text" name="new_price" placeholder="Enter Price"
@@ -20,7 +24,7 @@ form method="POST" action="/p/items_admin/new"
       option value="2" selected="seletecd" GMT
       option value="3" selected="selected" Luxary Sport
       option value="4" selected="selected" Cronograf 
-  input type="submit" value="Lägg till Ny"/
+  input type="submit" value="Lägg till Ny"/ 
 
 ol
   - items_result.each do |item|

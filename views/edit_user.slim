@@ -1,0 +1,19 @@
+a href="/p/home" Gå tillbaka
+
+h2 Uppdatera ditt användernamn eller lösenord
+form method="POST" action="/p/edit_user_username"
+  input type="text" name="new_username" placeholder="Enter new username"
+  input type="text" name="new_username_confirm" placeholder="confirm new username"
+  input type="submit" value="Update"
+
+form method="POST" action="/p/edit_user_password"
+  input type="password" name="old_password" placeholder="Enter old password"
+  input type="password" name="new_password" placeholder="Enter new password"
+  input type="password" name="new_password_confirm" placeholder="confirm new password"
+  input type="submit" value="Update"
+
+  - if flash[:notice]
+     p.notice = flash[:notice]
+
+
+  
